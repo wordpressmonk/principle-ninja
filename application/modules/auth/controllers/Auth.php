@@ -960,6 +960,42 @@ class Auth extends MY_Controller {
             http_response_code(200); // PHP 5.4 or greater
         }
     }
+    
+    /**
+     * User login from other side and do session login
+     * Getting E-mail
+     *
+     * @return user 
+     */
+    public function login(){
+        //print_r($_REQUEST);
+        $email = $_REQUEST['email'];
+        $user = $this->MUsers->get_by_email($email);
+        if($user){
+            $data['user_id'] = $user['id'];
+            $data['package_id'] = $user['package_id'];
+            $data['user_fname'] = $user['first_name'];
+            $data['user_lname'] = $user['last_name'];
+            $data['user_email'] = $user['email'];
+            $data['user_type'] = $user['type'];
+            $this->session->set_userdata($data);
+            redirect('sites', 'refresh');
+        }else{
+            //$this->session->set_flashdata('error', $this->lang->line('auth_index_validation_error'));
+            //redirect('auth', 'refresh');
+            $pwd = rand(100000,1000000);    //generates 6 digit random number
+            $user_data['first_name'] = $_REQUEST['first_name'];
+            $user_data['last_name'] = $_REQUEST['last_name'];
+            $user_data['email'] = $_REQUEST['email'];
+            $user_data['password'] = $pwd;
+            $userId = $this->MUsers->insert_user($user_data);
+            $this->login();
+        }
+    }
+    
+    public function user_register(){
+        return $this->MUsers->insert_user($_REQUEST);
+    }
 
     /**
      * Controller desctruct method for custom hook point
