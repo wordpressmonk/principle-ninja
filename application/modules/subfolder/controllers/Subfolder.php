@@ -37,7 +37,6 @@ class Subfolder extends MY_Controller {
 	 */
 	public function index($site, $page = NULL)
 	{
-
 		/** Hook point */
 		$this->hooks->call_hook('subfolder_index_pre');
 
@@ -63,7 +62,7 @@ class Subfolder extends MY_Controller {
 		}
 
 		// if $page resembles anything other then something.html, show 404
-		if ( $page != NULL && preg_match('/^\w*\.(html)$/i', $page, $matches, PREG_OFFSET_CAPTURE) === 0 )
+		if ( $page != NULL && preg_match('/^[A-Za-z0-9_-]*\.(html)$/i', $page, $matches, PREG_OFFSET_CAPTURE) === 0 )
 		{
 			show_404();
 		}
@@ -88,8 +87,20 @@ class Subfolder extends MY_Controller {
 			{
 				show_404();
 			}
+			//get the user_id which has to be passed with the API to get user data
+			$user_id = $this->MSites->get_user_id($page->sites_id);
+			//Call API to get the required values for the variables
+			$cSession = curl_init(); 
+			//step2
+			curl_setopt($cSession,CURLOPT_URL,"http://localhost/FirstApp/firstRestAPI.php?id=".$user_id);
+			curl_setopt($cSession,CURLOPT_RETURNTRANSFER,true);
+			curl_setopt($cSession,CURLOPT_HEADER, false); 
+			//step3
+			$result=curl_exec($cSession);
+			//step4
+			curl_close($cSession);
+			//step5
 			$page_content = $this->MPages->load_page($page->pages_id);
-			
 			$render_page = $page_content;
 
 			/** Add meta info */
@@ -150,7 +161,6 @@ class Subfolder extends MY_Controller {
 			{
 				show_404();
 			}
-
 			/** Fix the menu link */
 			foreach ($raw->find('a') as $element)
 			{
@@ -171,8 +181,15 @@ class Subfolder extends MY_Controller {
 
 			/** Hook point */
 			$this->hooks->call_hook('subfolder_index_post');
+			//Whenever a new variable is created, it should be added to the below array
+			$from = array('#ProspectFirstName','#ProspectLastName','#ProspectEmail','#ProspectPhone'
+				,'#MyId','#MyFirstName','#MyLastName','#MyPhone','#MyEmail','#MyAddress','#MyCity','#MyState'
+				,'#MyZip','#MyCompanyName','#MyPicture','#dateNow');
+			$result = (json_decode($result,true));
 
-			echo $raw;
+			$to = array($result['data']['prospectFirstName'],$result['data']['prospectLastName'],$result['data']['ProspectEmail'],$result['data']['ProspectPhone'],$result['data']['MyID'],$result['data']['MyFirstName'],$result['data']['MyLastName'],$result['data']['MyPhone'],$result['data']['MyEmailLink'],$result['data']['MyAddress'],$result['data']['MyCity'],$result['data']['MyState'],$result['data']['MyZip'],$result['data']['MyCompanyName'],$result['data']['MyPicture'],$result['data']['dateNow']);
+
+			echo str_replace($from, $to, $raw);
 		}
 		else
 		{

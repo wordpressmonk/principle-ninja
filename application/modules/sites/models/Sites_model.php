@@ -798,6 +798,25 @@ class Sites_model extends CI_Model {
         return $siteArray;
     }
 
+	//Kishan
+    //fetch the user details (values of the variables) for this site
+    /*public function getUserdata($siteID){
+        $query = $this->db->select('u.*')
+        ->from('sites s')
+        ->join('users u','u.id=s.users_id','left')
+        ->where('s.sites_id',$siteID)
+        ->get();
+        $res = $query->row_array();
+        return $res;
+    }*/
+
+    //fetch the user id from sites table for the requested site id
+    public function get_user_id($site_id){
+        $query = $this->db->select('users_id')->from('sites')->where('sites_id',$site_id)->get();
+        $res = $query->row();
+        return $res->users_id;
+    }
+
     /**
      * Grabs a single frame and returns it
      *
